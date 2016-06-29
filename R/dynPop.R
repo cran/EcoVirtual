@@ -1,7 +1,88 @@
 ################################################
 ### Ecovirtual -  Population Dynamics Models ###
 ################################################
-
+##' Population Dynamic Models
+##' 
+##' Functions to simulate population dynamic models.
+##' 
+##' popExp simulates discrete and continuous exponential population growth.
+##' 
+##' estEnv simulates a geometric population growth with environmental
+##' stochasticity.
+##' 
+##' BDM simulates simple stochastic birth death and immigration dynamics of a
+##' population (Renshaw 1991). simpleBD another algorithm for simple birth dead
+##' dynamics. This is usually more efficient than BDM but not implemented
+##' migration.
+##' 
+##' estDem creates a graphic output based on BDM simulations.
+##' 
+##' Stochastic models uses lambda values taken from a normal distribution with
+##' mean lambda and variance varr.
+##' 
+##' popLog simulates a logistic growth for continuous and discrete models.
+##' 
+##' popStr simulates a structured population dynamics, with Lefkovitch
+##' matrices.
+##' 
+##' In popStr the number of patches in the simulated scene is defined by rw*cl.
+##' 
+##' logDiscr simulates a discrete logistic growth model.
+##' 
+##' bifAttr creates a bifurcation graphic for logistic discrete models.
+##'
+##' @name dynPop
+##' @aliases popExp estEnv BDM simpleBD estDem popLog popStr logDiscr dynPop
+##' bifAttr
+##' @param N0 number of individuals at start time.
+##' @param lamb finite rate of population growth.
+##' @param tmax maximum simulation time.
+##' @param nmax maximum population size.
+##' @param intt interval time size.
+##' @param varr variance.
+##' @param npop number of simulated populations.
+##' @param ext extinction.
+##' @param b birth rate.
+##' @param d death rate.
+##' @param migr migration. logical.
+##' @param nsim number of simulated populations.
+##' @param cycles number of cycles in simulation.
+##' @param r intrinsic growth rate.
+##' @param K carrying capacity.
+##' @param p.sj probability of seed survival.
+##' @param p.jj probability of juvenile survival.
+##' @param p.ja probability of transition from juvenile to adult phase.
+##' @param p.aa probability of adult survival.
+##' @param fec mean number of propagules per adult each cycle.
+##' @param ns number of seeds at initial time.
+##' @param nj number of juveniles at initial time.
+##' @param na number of adults at initial time.
+##' @param rw number of rows for the simulated scene.
+##' @param cl number of columns for the simulated scene.
+##' @param rd discrete growth rate.
+##' @param nrd number of discrete population growth rate to simulate.
+##' @param maxrd maximum discrete population growth rate.
+##' @param minrd minimum discrete population growth rate.
+##' @param barpr show progress bar.
+##' @param type type of stochastic algorithm.
+##' @return The functions return graphics with the simulation results, and a
+##' matrix with the population size for deterministic and stochastic models.
+##' @author Alexandre Adalardo de Oliveira and Paulo Inacio Prado
+##' \email{ecovirtualpackage@@gmail.com}
+##' @seealso \code{\link{metaComp}}, \url{http://ecovirtual.ib.usp.br}
+##' @references Gotelli, N.J. 2008. A primer of Ecology. 4th ed. Sinauer
+##' Associates, 291pp. Renshaw, E. 1991. Modelling biological populations in
+##' space and time Cambridge University Press. Stevens, M.H.H. 2009. A primer
+##' in ecology with R. New York, Springer.
+##' @keywords population dynamics simulation
+##' @importFrom stats rexp rlnorm sd time
+##' @importFrom utils stack
+##' @examples
+##' 
+##' \dontrun{
+##' popStr(p.sj=0.4, p.jj=0.6, p.ja=0.2, p.aa=0.9, fec=0.8, ns=100,nj=40,na=20, rw=30, cl=30, tmax=20)
+##' }
+##'
 ########################################################
 ### Exponential growth - discrete and continuos growth ##
 #########################################################
@@ -55,6 +136,7 @@ popExp <- function(N0,lamb,tmax, intt= 1)
 ########################################################
 ### Geometric growth with Environmental Stochasticity ##
 #######################################################
+##' @rdname dynPop
 estEnv <- function(N0, lamb, tmax, varr, npop= 1, ext=FALSE) 
 {
     ## logical tests for initial conditions
@@ -111,32 +193,105 @@ estEnv <- function(N0, lamb, tmax, varr, npop= 1, ext=FALSE)
 ### Simple Stochastic birth death and immigration dynamics ##
 ## function to run one populations, Gillespie algorithm ####
 ##########################################################
-BDM <- function(tmax, b, d, migr=0, N0){
-  if(any(c(b,d,migr)<0))stop("b, d, and migr should not be negative")
-  N <- N0
-  tempo <- ctime <- 0
-  while(ctime<=tmax){
-    if(migr==0&N[length(N)]==0) break
-    else{
-      ctime <- ctime+rexp(1 , rate=b*N[length(N)] + d*N[length(N)] + migr )
-      tempo <- c(tempo,ctime)
-      N <- c( N,N[length(N)] + sample(c(1,-1), 1, prob=c(b*N[length(N)]+migr,d*N[length(N)])))
+##' @rdname dynPop
+BDM <- function(tmax, nmax=10000, b, d, migr=0, N0, barpr=FALSE)
+{
+    if(any(c(b,d,migr)<0))stop("b, d, and migr should not be negative")
+    if(barpr)
+        {
+            pb = tkProgressBar(title = "Simulation Progress", max = tmax)
+        }
+    N <- N0
+    tempo <- ctime <- 0
+    while(ctime<=tmax & N[length(N)]< nmax)
+        {
+            if(migr==0&N[length(N)]==0) break
+            else
+                {
+                    ctime <- ctime+rexp(1 , rate=b*N[length(N)] + d*N[length(N)] + migr )
+                    tempo <- c(tempo,ctime)
+                    N <- c( N,N[length(N)] + sample(c(1,-1), 1, prob=c(b*N[length(N)]+migr,d*N[length(N)])))
+                    if(barpr)
+                        {
+                            setTkProgressBar(pb, value = ctime, label = paste("Time: ",round(ctime[length(ctime)],1), " . Total time: ", tmax, sep=""))
+                        }
+          }
+        }
+    if(N[length(N)]>=0&ctime>tmax)
+        {
+            tempo[length(tempo)] <- tmax
+            N[length(N)] <- N[length(N)-1]
+        }
+    if(barpr)
+        {
+            close(pb)
+        }
+    invisible(data.frame(time=tempo, Nt=N))
+}
+#############################################################
+### Just Another Gillespie algorithm for simple birth death #
+### without migration, but more efficient 
+##########################################################
+##' @rdname dynPop
+simpleBD = function(tmax=10, nmax =10000 , b=0.2, d=0.2, N0=10, cycles=1000, barpr=FALSE)
+    { 
+        if(barpr)
+            {
+                pb = tkProgressBar(title = "Simulation Progress", max = tmax)
+            }
+ctime=0
+nind=N0
+while(ctime[length(ctime)]<tmax & (nind[length(nind)]>0 & nind[length(nind)] < nmax))
+{
+### event sequence (bird or dead)
+ybd = runif(cycles,0,1)
+bd<-rep(-1,cycles)
+bd[ybd <= b/(b+d)] <- 1
+cbd <- cumsum(c(nind[length(nind)], bd))
+######## time sequence
+ytime <-runif(cycles,0,1)
+stime <- -(log(ytime))/(cbd[-cycles]*(b+d))
+ct <- cumsum(c(ctime[length(ctime)],stime))
+ctime <- c(ctime, ct[-1])
+nind <-c(nind,cbd[-1])
+if(barpr)
+          {
+              setTkProgressBar(pb, value = ct[length(ct)], label = paste("Simulation time: ", round(ct[length(ct)],1), " ;  maximum time: ", tmax, sep=""))
+          }
+#### 0 for population < 0 ####
+zeros <- nind==0
+if(sum(zeros) > 0)
+    {
+        first0 <- min(which(zeros))
+        seq0 <- ((first0+1):(length(nind)))
+        nind[seq0]<-0
+        ctime[is.infinite(ctime)] <- NA
     }
-  }
-  if(N[length(N)]>=0&ctime>tmax){
-    tempo[length(tempo)] <- tmax
-    N[length(N)] <- N[length(N)-1]
-  }
-  data.frame(time=tempo, N=N)
+
+}
+if(barpr)
+    {
+        close(pb)
+    }
+invisible(data.frame(time=ctime, Nt=nind))
 }
 ###############################################################
 ## function for n runs of stochastic birth death immigration ###
 ###############################################################
-estDem = function(N0=10, tmax=10, b=0.2, d=0.2, migr=0, nsim=20, ciclo=1000)
+##' @rdname dynPop
+estDem = function(N0=10, tmax=10, nmax=10000, b=0.2, d=0.2, migr=0, nsim=20, cycles=1000, type= c("simpleBD", "BDM"), barpr= FALSE)
 {
-    results <- vector(mode="list", length=nsim)
-    for(i in 1:nsim) results[[i]] <- BDM(b=b, d=d, migr=migr, N0=N0, tmax=tmax)
+    type = match.arg(type)
+    if(type=="simpleBD" & migr==0 )
+        {
+            results <- replicate(nsim, simpleBD(tmax=tmax, b=b, d=d, cycles=cycles, N0=N0, nmax=nmax, barpr=barpr), simplify=FALSE )
+        }else{
+            results <- replicate(nsim, BDM(tmax=tmax, b=b, d=d, N0=N0, nmax=nmax, barpr=barpr), simplify=FALSE )
+        }
+    n.ext <- sum(sapply(results,function(x){min(x$Nt[x$time<=tmax], na.rm=TRUE)})==0, na.rm=TRUE)
+    tseq=seq(0,tmax, len=1000)
     cores <- rainbow(nsim)
+    ymax<-max(sapply(results,function(x)max(x$Nt)))
     plot(results[[1]], type="l",
          main="Stochastic Birth, Death and Immigration",
          xlab= "Time",
@@ -146,45 +301,39 @@ estDem = function(N0=10, tmax=10, b=0.2, d=0.2, migr=0, nsim=20, ciclo=1000)
          cex.axis=1.2,
          sub= paste("birth=",b, " death =",d, " migration=",migr),
          bty="n",
-         ylim=c(0,max(sapply(results,function(x)max(x$N)))),
+         ylim=c(0,ymax),
          xlim=c(0,tmax),
          col=cores[1]
          )
     for(i in 2:length(results)){
         lines(results[[i]],col=cores[i])
     }
-    if(migr==0){
-		# Following code avoids spurious NOTE by R CMD check:
-		x <- NULL; rm(x);
-
-        curve(N0*exp((b-d)*x), add=T, lwd=2)
-        n.ext <- sum(sapply(results,function(x)min(x$N))==0)
-        if(b>d&all(sapply(results, function(x)any(x[,2]==N0*2)))){
-            d.time <- sapply(results,function(x)min(x[x[,2]==N0*2,1]))
-			# m não declarado, supondo n.ext (A.C. 13.ago.14)
+    Nt=N0*exp((b-d)*tseq)
+    lines(tseq, Nt, lwd=2)
+    if(migr==0)
+        {
+        if(b>d & all(sapply(results, function(x)any(x[,2]==N0*2))))
+            {
+            d.time <- sapply(results,function(x)min(x[x[,2]==N0*2,1],na.rm=TRUE))
+            # m nao declarado, supondo n.ext (A.C. 13.ago.14)
             #if(m>0) texto <-c(paste("extinctions =", n.ext, "/", nsim),
-            if(n.ext>0) texto <-c(paste("extinctions =", n.ext, "/", nsim),
-                       paste("Doubling time: mean=",round(mean(d.time),3),"std dev=",round(sd(d.time),3)))
-            else texto <- paste("Doubling time: mean=",round(mean(d.time),3),"std dev=",round(sd(d.time),3))
-            legend("topleft",legend=texto,bty="n")
+            #texto <-c(paste("extinctions =", n.ext, "/", nsim), paste("Doubling time: mean=",round(mean(d.time),3),"std dev=",round(sd(d.time),3)))
+            legend("topright",legend=paste("Doubling time: mean=",round(mean(d.time),3),"std dev=",round(sd(d.time),3)),bty="n")
         }
-        else if(b<d&all(sapply(results, function(x)any(x[,2]<=N0/2)))){
-            h.time <- sapply(results,function(x)min(x[x[,2]<=N0/2,1]))
+        if(b<d & all(sapply(results, function(x)any(x[,2]<=N0/2)))){
+            h.time <- sapply(results,function(x)min(x[x[,2]<=N0/2,1], na.rm=TRUE))
             legend("topright",
-                   legend=c(paste("extinctions =", n.ext, "/", nsim),
-                       paste("Halving time: mean=",round(mean(h.time),3),"std dev=",round(sd(h.time),3))),
-                   bty="n")
+                   legend= paste("Halving time: mean= ",round(mean(h.time, na.rm=TRUE),3)," ,std dev= ",round(sd(h.time, na.rm=TRUE),3),sep=""), bty="n")
         }
-        else
-            legend("topleft",legend=c(paste("extinctions =", n.ext, "/", nsim)),bty="n")
     }
+    legend(0, ymax*0.9,legend=c(paste("extinctions =", n.ext, "/", nsim)),bty="n")
     invisible(results)
 }
-
-#estDem(tmax=10, b=0.2, d=0.2, N0=100, nsim=20, ciclo=1000)
+#res<-estDem(tmax=100, b=0.5, d=0.6, N0=10, nsim=100, cycles=1000, type="simpleBD", nmax=10000)
 ########################
 ## Logistical Growth ###
 ########################
+##' @rdname dynPop
 popLog=function(N0, tmax, r, K, ext=FALSE)
 {
 resulta=matrix(NA, nrow=tmax+1,ncol=3)
@@ -238,13 +387,14 @@ abline(h=K, lty=3, col="blue", lwd=2)
 abline(h=0)
 text(x=0.2, y=K+1, "Carrying capacity", col="blue",adj=c(0,0), cex=0.7)
 #text(x=tmax*0.4, y= resulta[(tmax/2),2], paste("r=", r),pos=3)
-title(sub=paste("rd = rc = ", round(r,3)),cex.sub=0.9)
+title(sub=paste("rd = r = ", round(r,3)),cex.sub=0.9)
 invisible(resulta)
 }
 #popLog(N0=10, r=0.05, K=80, tmax=100, ext=FALSE)
 ################################################
 ## Populational Model for structured populations
 ################################################
+##' @rdname dynPop
 popStr=function(tmax, p.sj, p.jj, p.ja, p.aa, fec, ns, nj, na, rw, cl)
 {
 dev.new()
@@ -320,6 +470,7 @@ invisible(list(simula=pais, xy=xy.sem))
 ###############################################################
 #### Bifurcation and atractors - Discrete Logistic Growth 
 ############################################################### 
+##' @rdname dynPop
 logDiscr<-function(N0, tmax, rd, K)
   {
   Nt=rep(NA,tmax+1)
@@ -330,7 +481,10 @@ logDiscr<-function(N0, tmax, rd, K)
     }
 return(Nt)
 }
-##
+#####################################
+#  Bifurcation graphic for logistic
+#####################################
+##' @rdname dynPop
 bifAttr=function(N0, K, tmax, nrd, maxrd=3, minrd=1)
 {
 rd.s=seq(minrd,maxrd,length=nrd)
@@ -341,5 +495,6 @@ r2$rd=rep(rd.s,each=tmax+1)
 r2$time=rep(0:tmax, nrd)
 res.bif=subset(r2, time>0.5*tmax)
 plot(N~rd, data=res.bif, pch=".", cex=2, ylab="Population size (N) attractors", xlab="Discrete population growth rate (rd)", cex.axis=1.2, main="Discrete Logistic Bifurcation")
+invisible(res.bif)
 }
 ##bifAttr(N0=50,K=100,tmax=200,nrd=500, minrd=1.9, maxrd=3)

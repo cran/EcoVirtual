@@ -1,16 +1,19 @@
 Package: EcoVirtual
 Type: Package
 Title: Simulation of Ecological Models
-Version: 0.1
-Date: 2014-08-15
-Author: Alexandre Adalardo de Oliveira and Paulo Inacio Prado <ecovirtualpackage@gmail.com>
+Version: 1.0
+Date: 2016-06-24
+Author: Alexandre Adalardo de Oliveira and Paulo Inacio Prado
+    <ecovirtualpackage@gmail.com>
 Maintainer: Alexandre Adalardo de Oliveira <ecovirtualpackage@gmail.com>
-Description: A package for simulations of classical ecological models as a learning resource. 
+Description: Computer simulations of classical ecological models as a
+    learning resource.
 Depends: tcltk
 License: GPL (>= 2)
 URL: http//ecovirtual.ib.usp.br
 LazyLoad: yes
-Packaged: 2014-08-15 21:36:35 UTC; ale
+RoxygenNote: 5.0.1
 NeedsCompilation: no
+Packaged: 2016-06-29 12:25:10 UTC; aao
 Repository: CRAN
-Date/Publication: 2014-08-16 07:51:36
+Date/Publication: 2016-06-29 15:57:27

@@ -1,15 +1,91 @@
 #######################################
 ### EcoVirtual -Internal Functions ####
 #######################################
-
-
 ##############################################
 ### Island Biogeography and Neutral Theory ###
 ##############################################
-
 ## fuction rich used in 'simHub1' 'simHub2' simHub3'
+##' Number of Species
+##' 
+##' Count the number of species (species richness) from a vector with a species
+##' list.
+##' 
+##' This function is used internally in the functions 'simHub1', simHub2', and
+##' 'simHub3'.
+##' 
+##' @param x a vector with names.
+##' @return returns the number of species (species richness).
+##' @author Alexandre Adalardo de Oliveira \email{ecovirtualpackage@@gmail.com}
+##' @keywords simulation Neutral Theory Internal Functions
+##' @import tcltk
+##' @importFrom grDevices colorRamp dev.new rainbow rgb
+##' @importFrom graphics abline axis curve grid image layout legend lines matplot mtext par plot points polygon segments text title
+##' @examples
+##' 
+##' lsp <- sample(LETTERS,50,replace=TRUE)
+##' lsp
+##' rich(lsp)
+##' 
+##' @export rich         
 rich <- function(x)length(unique(x))
-
+################################
+##' Internal EcoVirtual Graphics and Animations
+##' 
+##' Internal functions for graphics and animations of the simulations results.
+##' 
+##' 
+##' The list below relates each function graphical and its primary functions:
+##' 
+##' animaCena - regNicho
+##' 
+##' animaGame - extGame
+##' 
+##' animaHub - simHub1, simHub2, simHub3
+##' 
+##' animaIsl - archip
+##' 
+##' animaMeta2 - metaPop, metaCi, metaEr, metaCiEr
+##' 
+##' animaMetaComp - metaComp
+##' 
+##' animaRandWalk - randWalk
+##' 
+##' grColExt - animaColExt, bioGeoIsl
+##' 
+##' grFim - metaPop, metaCi, metaEr, metaCiEr
+##'
+##' @name anima
+##' @aliases animaCena animaGame animaHub animaIsl animaMeta2 animaMetaComp
+##' animaRandWalk grColExt gr.toff grFim anima
+##' @param E extinction rate
+##' @param I colonization rate
+##' @param P species available in mainland
+##' @param area islands sizes
+##' @param riq.tempo data from archip function
+##' @param ar.isl vector of island areas
+##' @param locxy species arrival point
+##' @param sprain arrival species id
+##' @param col_riq vector of species colors
+##' @param S number of species
+##' @param dadoHub data from neutral model simulation
+##' @param sleep sleep time between simulations frame
+##' @param dados data from metapopulation simulation
+##' @param rq number of species
+##' @param fsp1 abundance of the most abundante species
+##' @param pe mortality/extinction rate 
+##' @param add add a graphic
+##' @param ... other parameters
+##' @return Show simulation in a graphic device.
+##' @author Alexandre Adalardo de Oliveira \email{ecovirtualpackage@@gmail.com}
+##' @seealso \url{http://ecovirtual.ib.usp.br}
+##' @keywords simulation
+##' @examples
+##' 
+##' \dontrun{
+##' grColExt(E = 0.5 , I = 0.5 , P = 100, area=1:10)
+##' }
+##'
+##' @export animaCena animaGame animaHub animaIsl animaMeta2 animaMetaComp animaRandWalk grColExt grFim
 ## function animaIls used in 'archip' function
 animaIsl=function(riq.tempo, ar.isl, locxy, sprain, col_riq=col_riq, S=S)
 {
@@ -48,9 +124,9 @@ animaIsl=function(riq.tempo, ar.isl, locxy, sprain, col_riq=col_riq, S=S)
           }
           par(old)
 }
-
-
+##################################################
 ## grColExt used in 'animaColExt' and 'bioGeoIsl'
+##' @rdname anima
 grColExt=function(E , I , P, area)
 {
 	# Following code avoids spurious NOTE by R CMD check:
@@ -83,16 +159,15 @@ grColExt=function(E , I , P, area)
 		Sys.sleep(0.1)
 	}	
 }
-
+##################################################
 #grColExt(E = .5 , I = .5 , P = 100, area=1:10)
-
-
+##################################################
 ## animaRandWalk used in 'randWalk'
 animaRandWalk = function(rwData, time=2, sleep=0.1)
 {
           xplus=max(time)*0.1
           ymax=max(apply(rwData, 2, max))[1]
-          plot(time, rwData[,which.max(apply(rwData, 2, max))[1]], xlab="Steps", ylab="Distance from the edge",cex.axis=1.2, cex.lab=1.2,ylim=c(-.1* ymax,ymax), main="Random Walk", cex.main=1.5, type="n", xlim=c(0,max(time)))
+          plot(time, rwData[,which.max(apply(rwData, 2, max))[1]], xlab="Cicles", ylab="Distance from the edge",cex.axis=1.2, cex.lab=1.2,ylim=c(-.1* ymax,ymax), main="Random Walk", cex.main=1.5, type="n", xlim=c(0,max(time)))
           polygon(x=c(-xplus, -xplus, max(time)+xplus, max(time)+xplus), y=c(ymax*-0.15,0,0,ymax*-0.15), col="gray")
           text(max(time)/2, -0.05* ymax, labels="Absorption Surface", col="red", cex=1.5)
           n=dim(rwData)[2]
@@ -106,8 +181,7 @@ animaRandWalk = function(rwData, time=2, sleep=0.1)
                     Sys.sleep(sleep)
           }
 }
-
-
+##################################################
 ## animaGame used in 'extGame'
 animaGame = function(xGame, total, sleep=0.01)
 {
@@ -134,9 +208,10 @@ animaGame = function(xGame, total, sleep=0.01)
           text(xmax/2, - 0.05* total, labels="Loser", col="red", cex=1.5)
           text(xmax/2, total + 0.05* total, labels="Winner", col="green", cex=1.5)
 }
-
-
+##################################################
 ## animaHub used in 'simHub1', 'simHub2', 'simHub3'
+##################################################
+##' @rdname anima
 animaHub=function(dadoHub, sleep=0.1)
 {
           maxsp=max(dadoHub)[1]
@@ -181,76 +256,88 @@ animaHub=function(dadoHub, sleep=0.1)
           }
           close(pb)
 }
-
-
-
 ###############################
 ### Two Species Competition ###
 ###############################
-
 ### Meta competition 'animaMetaComp' used in 'metaComp'
+##' @rdname anima
 animaMetaComp=function(dados)
 {
 nsim=dim(dados)[3]
 ln=dim(dados)[1]
 cl=dim(dados)[2]
-op=par(mar=c(1,2,2,2))
-layout(matrix(c(2,1), ncol=1, nrow=2), heights=c(5,1),widths=c(1,1))
+op=par(mar=c(0,1,1,0))
+layout(matrix(c(2,1), ncol=1, nrow=2), heights=c(4,1),widths=c(1,1))
 plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
-legend(0.5,11.8,ncol=4, legend=c("not available", "empty", "sup. competitor", "inf. competitor"), pch=c(15,22,15,15), title="Patches legend", col=c("red","black", "blue", "green"),bty="n")
-image(0:ln, 0:cl, dados[,,1], col=c("red", "white","blue" ,"green") , breaks=c(-0.9,-0.001,0.1,1.5,2.9),main="Metapopulations Competition",  xlab="", ylab="")
+text(5.5, 9, labels="Patches legend", cex=1.4)
+legend(2,8, legend=c("not available", "empty"), pch=c(15,22), col=c("red","black"),bty="n", cex = 1.4)
+legend(6,8, legend=c("sup. competitor", "inf. competitor"), pch=c(15,15), col=c("blue","green"),bty="n", cex = 1.4)
+op <- par(mar=c(1,3,3,2), las=1)
+image(0:ln, 0:cl, dados[,,1], col=c("red", "white","blue" ,"green") , breaks=c(-0.9,-0.001,0.1,1.5,2.9), main="Metapopulations Competition", cex.main=1.4, xlab="", ylab="")
 grid(ln,cl)
 Sys.sleep(.5)
 	for(i in 2:nsim)
 	{
 	par(new=TRUE)
-image(0:ln, 0:cl, dados[,,i], col=c("red", "white","blue" ,"green") , breaks=c(-0.1,-0.001,0.1,1.9,2.9), xlab="", ylab="")
+image(0:ln, 0:cl, dados[,,i], col=c("red", "white","blue" ,"green") , breaks=c(-0.9,-0.001,0.1,1.5,2.9), xlab="", ylab="")
 grid(ln,cl)
 	Sys.sleep(.1)
 	}
 }
-
-
-
 #######################
 ### Metapopulations ###
 #######################
-
 ## animaMeta2 used in 'metaPop', 'metaEr', 'metaCi', 'metaCier'
+##' @rdname anima
 animaMeta2=function(dados)
 {
 nsim=dim(dados)[3]
 ln=dim(dados)[1]
 cl=dim(dados)[2]
-image(0:ln, 0:cl, dados[,,1], col=c("white", "green") , breaks=c(0,0.99,5),main="Metapopulation Dynamics", sub=paste("Initial configuration from", nsim," simulations",  sep=""), xlab="", ylab="")	
+op=par(mar=c(0,1,1,0))
+layout(matrix(c(2,1), ncol=1, nrow=2), heights=c(4,1),widths=c(1,1))
+plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
+text(5.5, 9, labels="Patches legend", cex=1.4)
+legend(2,8, legend=c("empty", "extinction"), pch=c(22,15), col=c("black", "red"),bty="n", cex = 1.4)
+legend(6,8, legend=c("colonization", "permanence"), pch=c(15,15), col=c("lightgreen","darkgreen"),bty="n", cex = 1.4)
+op <- par(mar=c(1,3,3,2), las=1)
+image(0:ln, 0:cl, dados[,,1], col=c("white","green") ,  breaks=c(0,0.99,5), main="Metapopulations Dynamics", cex.main=1.4, xlab="", ylab="")
 grid(ln,cl)
 Sys.sleep(.5)
-conta12=dados[,,1]+ (2*dados[,,2])
-image(0:ln, 0:cl, conta12, col=c("white","red","lightgreen", "darkgreen") , breaks=c(0,0.9,1.9,2.9,3.9),main="Metapopulation Dynamics", sub=paste("red= extinction; light green= colonization; dark green = permanence \n maximum time = ", nsim, sep=""), xlab="", ylab="")
-	for(i in 3:nsim)
+	for(i in 2:nsim)
 	{
+	par(new=TRUE)
 	conta12=dados[,,(i-1)]+ (2*dados[,,i])
-	image(0:ln, 0:cl, conta12, col=c("white","red","lightgreen", "darkgreen") , breaks=c(0,0.9,1.9,2.9,3.9), xlab="", ylab="", add=TRUE)
+	image(0:ln, 0:cl, conta12, col=c("white","red","lightgreen", "darkgreen") , breaks=c(0,0.9,1.9,2.9,3.9), xlab="", ylab="")
+        grid(ln,cl)
 	Sys.sleep(.1)
 	}
 }
-
-
+##################################################
 ## grFim used in 'metaPop', 'metaEr', 'metaCi', 'metaCier'
+##' @rdname anima
 grFim=function(dados)
 {
-op=par(mfrow=c(2,2))
 nsim=dim(dados)[3]
 ln=dim(dados)[1]
 cl=dim(dados)[2]
-image(0:ln, 0:cl, dados[,,1], col=c("white", "green") , breaks=c(0,0.99,5),main="Metapopulation Dynamics", sub=paste("time = 1/", nsim, sep=""), xlab="", ylab="")	
+op=par(mar=c(0,1,1,0))
+layout(matrix(c(3,5,1,4,6,2), ncol=2, nrow=3), heights=c(4,4,1),widths=c(1,1))
+plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
+#text(8, 9, labels="Patches legend", cex=1.4)
+legend(5,9, legend=c("empty", "extinction"), pch=c(22,15), col=c("black", "red"),bty="n", cex = 1.5)
+plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
+legend(2,9, legend=c("colonization", "permanence"), pch=c(15,15), col=c("lightgreen","darkgreen"),bty="n", cex = 1.5)
+op <- par(mar=c(1,3,3,2), las=1)
+sqt=round(seq(1,nsim,len=4))[2:4]
+image(0:ln, 0:cl, dados[,,1], col=c("white","green") ,  breaks=c(0,0.99,5), main="Metapopulations Dynamics time = 0", cex.main=1.4, xlab="", ylab="")
 grid(ln,cl)
-	for(ts in c(4,2,1))
-	{
-	sim=round(nsim/ts)
-	conta12=dados[,,(sim-1)]+ (2*dados[,,sim])
-	image(0:ln, 0:cl, conta12, col=c("white","red","lightgreen", "darkgreen") , breaks=c(0,0.9,1.9,2.9,3.9),main="Metapopulation Dynamics", sub=paste("red= extinction; light green= colonization;\n dark green = permanence \t time = ", sim, "/", nsim, sep=""), xlab="", ylab="")
-	}
+for(i in sqt)
+{
+    conta12=dados[,,(i-1)]+ (2*dados[,,i])
+    image(0:ln, 0:cl, conta12, col=c("white","red","lightgreen", "darkgreen") , breaks=c(0,0.9,1.9,2.9,3.9), xlab="", ylab="", main = paste("Simulation ", i,"/", nsim))
+    grid(ln,cl)
+}
 par(op)
 }
 ##############################
@@ -259,6 +346,7 @@ par(op)
 ###############################
 #Trade-off Multispecies Graphic
 ### 
+##' @rdname anima
 gr.toff=function(rq, fsp1,pe,add=FALSE,...)
 {
 #	rq <- as.numeric(tclvalue(rqVar))
@@ -285,25 +373,36 @@ gr.toff=function(rq, fsp1,pe,add=FALSE,...)
 }
 ###############################
 ## animaCena used in 'regNicho'
+##' @rdname anima
 animaCena=function(dados)
 {
-nt=dim(dados)[3]
-dev.new()
+nsim=dim(dados)[3]
+ln=dim(dados)[1]
+cl=dim(dados)[2]
+#dev.new()
 op=par(mfrow=c(5,5),  mar=c(0.1,0.1,0.1,0.1))
-	for(i in 1:nt)
+	for(i in 1:nsim)
 	{
-	image(dados[,,i], main="",  bty="n",xaxt='n',yaxt='n', col=c("white", "yellow", "orange", "blue", "green"))
-	grid(dim(dados)[2],dim(dados)[1])
+	image(dados[,,i], main="",  bty="n",xaxt='n',yaxt='n', col=c("white", "gold", "orange", "blue", "green"))
+	grid(cl,ln)
 	}
 dev.new()
-par(mfrow=c(2,2))
-image(dados[,,1], main= paste("Patch occupancy\n \t time=", 1 ),  bty="n",xaxt='n',yaxt='n',col=c("white", "yellow", "orange", "blue", "green"))
-grid(dim(dados)[2],dim(dados)[1])
-image(dados[,,round(nt/3)], main= paste("Patch occupancy\n \t time=", round(nt/3) ),  bty="n",xaxt='n',yaxt='n',col=c("white", "yellow", "orange", "blue", "green"))
-grid(dim(dados)[2],dim(dados)[1])
-image(dados[,,round(2*nt/3)], main= paste("Patch occupancy\n \ttime=", round(2*nt/3) ),  bty="n",xaxt='n',yaxt='n',col=c("white", "yellow", "orange", "blue", "green"))
-grid(dim(dados)[2],dim(dados)[1])
-image(dados[,,nt], main= paste("Patch occupancy\n \t time=", nt ),  bty="n",xaxt='n',yaxt='n',col=c("white", "yellow", "orange", "blue", "green"))
-grid(dim(dados)[2],dim(dados)[1])
+
+op=par(mar=c(0,1,1,0))
+layout(matrix(c(3,5,1,4,6,2), ncol=2, nrow=3), heights=c(4,4,1),widths=c(1,1))
+plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
+legend(5,10, legend=c("early", "susceptible"), pch=c(15,15), col=c("gold", "orange"),bty="n", cex = 1.8)
+plot(1:10,1:10,xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8,type="n", , bty="n")
+legend(2,10, legend=c("mixed", "resistant"), pch=c(15,15), col=c("blue","green"),bty="n", cex = 1.8)
+sqt=round(seq(1,nsim,len=4))[2:4]
+image(dados[,,1], main= paste("Patch occupancy time=", 1 ),  bty="n",xaxt='n',yaxt='n',col=c("white", "gold", "orange", "blue", "green"))
+grid(cl,ln)
+
+for(i in sqt)
+{
+image(dados[,,i], main= paste("Patch occupancy time=", i, "/", nsim ),  bty="n",xaxt='n',yaxt='n',col=c("white", "gold", "orange", "blue", "green"))
+grid(cl,ln)
+}
 par(op)
 }
+######################END############################
