@@ -112,7 +112,11 @@ popExp <- function(N0,lamb,tmax, intt= 1)
     resulta[,1]<-ntseq
     resulta[,2]<-N0*exp(radj*(0:nc))
     resulta[,3]<-N0*ladj^(0:nc)
-    ntmax=N0*lamb^tmax
+    ntmax = N0*lamb^tmax
+    if(ntmax==Inf)
+    {
+        stop("The population reached a extreme large number of individuals. This is a typical behavior of exponential growth with large rates or enough time. Use smaller numbers!!")
+    }
     if(N0 <= ntmax)
         {
             ymax<-ntmax
@@ -141,6 +145,11 @@ estEnv <- function(N0, lamb, tmax, varr, npop= 1, ext=FALSE)
 {
     ## logical tests for initial conditions
                                         #   N0 <- round(as.numeric(tclvalue(noVar)))
+    if (N0* lamb^tmax == Inf) 
+        {
+            stop("The population reach a very large number of individuos. Use smaller values of tmax and or lambda")
+                                        #            return()
+        }
     if (is.na(N0) || N0 <= 0) 
         {
             stop("Number of individuals at the simulation start must be a positive integer")
@@ -167,7 +176,7 @@ estEnv <- function(N0, lamb, tmax, varr, npop= 1, ext=FALSE)
     for (t in 2:tmax) 
 	{
             resulta[t,2] <- N0*lamb^(t-1)
-            lambe <- rlnorm(npop,meanlog,sqrt(varlog)) 
+                        lambe <- rlnorm(npop,meanlog,sqrt(varlog)) 
             resulta[t,3:(npop+2)] <- resulta[t-1,3:(npop+2)]*lambe 
             if (sum(resulta[t,3:(npop+2)])>1 & ext==TRUE) 
 		{
